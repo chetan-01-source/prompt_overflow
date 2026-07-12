@@ -24,6 +24,19 @@ const USERS = [
   { username: "agentwrangler", email: "agentwrangler@example.com" },
   { username: "onepromptwonder", email: "onepromptwonder@example.com" },
   { username: "shipfast", email: "shipfast@example.com" },
+  // Community voters: give the site an authentic spread of engagement.
+  { username: "mira_dev", email: "mira_dev@example.com" },
+  { username: "tokenwrangler", email: "tokenwrangler@example.com" },
+  { username: "designbynight", email: "designbynight@example.com" },
+  { username: "the_debugger", email: "the_debugger@example.com" },
+  { username: "coffee_compiler", email: "coffee_compiler@example.com" },
+  { username: "async_annie", email: "async_annie@example.com" },
+  { username: "sudo_sam", email: "sudo_sam@example.com" },
+  { username: "pixelpusher", email: "pixelpusher@example.com" },
+  { username: "regex_rob", email: "regex_rob@example.com" },
+  { username: "nullpointer", email: "nullpointer@example.com" },
+  { username: "gradient_grace", email: "gradient_grace@example.com" },
+  { username: "shipittoprod", email: "shipittoprod@example.com" },
 ];
 
 const PASSWORD = "seedpass123!";
@@ -293,13 +306,24 @@ async function main() {
   // Idempotency: skip if questions already seeded
   const { count } = await admin.from("questions").select("id", { count: "exact", head: true });
   if (count > 0) {
-    console.log(`Questions already exist (${count}), skipping question seed.`);
+    console.log(`Questions already exist (${count}), skipping question seed. Run scripts/reset.mjs first to reseed.`);
     return;
   }
 
+  // Natural timestamps: spread questions over the last ~5 weeks, newest last in list.
+  const now = Date.now();
+  const HOUR = 3600 * 1000;
+  const daysAgo = [34, 29, 23, 18, 12, 8, 5, 2];
+  const questionTimes = QUESTIONS.map((_, i) => {
+    const base = now - (daysAgo[i] ?? 1) * 24 * HOUR;
+    // jitter by a few hours so times don't look synthetic
+    return new Date(base + Math.floor(Math.random() * 9 - 4) * HOUR).toISOString();
+  });
+
   console.log("Creating questions...");
   const questionIds = [];
-  for (const q of QUESTIONS) {
+  for (let i = 0; i < QUESTIONS.length; i++) {
+    const q = QUESTIONS[i];
     const { data, error } = await admin
       .from("questions")
       .insert({
@@ -309,6 +333,8 @@ async function main() {
         prompt: q.prompt,
         artifact_url: q.artifact_url,
         view_count: q.views,
+        created_at: questionTimes[i],
+        updated_at: questionTimes[i],
       })
       .select("id")
       .single();
@@ -323,6 +349,9 @@ async function main() {
   console.log("Creating answers...");
   const answerIds = [];
   for (const a of ANSWERS) {
+    // answers land 3h to 2d after their question
+    const qTime = new Date(questionTimes[a.q]).getTime();
+    const aTime = new Date(qTime + (3 + Math.floor(Math.random() * 45)) * HOUR).toISOString();
     const { data, error } = await admin
       .from("answers")
       .insert({
@@ -330,6 +359,8 @@ async function main() {
         author_id: userIds[a.author],
         body: a.body,
         prompt: a.prompt,
+        created_at: aTime,
+        updated_at: aTime,
       })
       .select("id")
       .single();
@@ -358,24 +389,32 @@ async function main() {
   }
 
   console.log("Casting votes...");
-  // Distribute upvotes across questions and answers from various users
+  // Distribute votes across questions and answers from various users so scores
+  // vary naturally. A small fraction are downvotes, like a real community.
   const voteSpecs = [];
   const usernames = Object.keys(userIds);
-  const questionVotes = [12, 28, 9, 19, 22, 5, 8, 11];
+  // net-ish upvote targets per question (index-aligned with QUESTIONS)
+  const questionVotes = [14, 31, 8, 22, 27, 6, 11, 17];
   for (let qi = 0; qi < questionIds.length; qi++) {
-    const target = Math.min(questionVotes[qi] ?? 5, usernames.length);
-    for (let v = 0; v < target; v++) {
+    const target = Math.min(questionVotes[qi] ?? 6, usernames.length - 1);
+    let cast = 0;
+    for (let v = 0; v < usernames.length && cast < target + 2; v++) {
       const voter = usernames[v];
       if (userIds[voter] === userIds[QUESTIONS[qi].author]) continue;
-      voteSpecs.push({ user_id: userIds[voter], post_type: "question", post_id: questionIds[qi], vote_type: 1 });
+      // ~1 in 9 votes is a downvote for authenticity
+      const vote_type = cast >= target ? -1 : 1;
+      voteSpecs.push({ user_id: userIds[voter], post_type: "question", post_id: questionIds[qi], vote_type });
+      cast++;
     }
   }
   for (const a of answerIds) {
-    const n = a.accepted ? 4 : 2;
-    for (let v = 0; v < n && v < usernames.length; v++) {
+    const n = Math.min(a.accepted ? 9 : 4, usernames.length - 1);
+    let cast = 0;
+    for (let v = 0; v < usernames.length && cast < n; v++) {
       const voter = usernames[v];
       if (userIds[voter] === userIds[a.author]) continue;
       voteSpecs.push({ user_id: userIds[voter], post_type: "answer", post_id: a.id, vote_type: 1 });
+      cast++;
     }
   }
   for (const spec of voteSpecs) {
