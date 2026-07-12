@@ -64,13 +64,10 @@ export default async function NotificationsPage() {
                 href={href}
                 className={`notif-item${notif.is_read ? "" : " unread"}`}
               >
-                <div>
+                <div className="notif-body">
                   {actorUsername && (
-                    <span
-                      className="notif-actor"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <a href={`/users/${actorUsername}`}>{actorUsername}</a>{" "}
+                    <span className="notif-actor">
+                      <strong>{actorUsername}</strong> mentioned you:{" "}
                     </span>
                   )}
                   <span className="notif-snippet">{notif.snippet}</span>

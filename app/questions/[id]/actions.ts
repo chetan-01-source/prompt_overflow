@@ -110,16 +110,20 @@ export async function postComment({
     questionId = answer?.question_id ?? 0;
   }
 
-  // Send @mention notifications (fire and forget, never block the comment)
+  // Send @mention notifications. Must complete before the action returns
+  // (unawaited promises in server actions are not guaranteed to run), but a
+  // failure here must never block the comment from being posted.
   const usernames = parseMentions(body);
   if (usernames.length > 0 && inserted?.id && questionId > 0) {
-    supabase
-      .rpc("notify_mentions", {
+    try {
+      await supabase.rpc("notify_mentions", {
         p_comment_id: inserted.id,
         p_question_id: questionId,
         p_usernames: usernames,
-      })
-      .then(() => {});
+      });
+    } catch {
+      // Ignore notification failures.
+    }
   }
 
   // Revalidate the question page
