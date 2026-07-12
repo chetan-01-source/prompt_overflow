@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import SearchBox from "@/components/SearchBox";
+import NavLinks from "@/components/NavLinks";
 import LogoutButton from "@/components/LogoutButton";
 
 export default async function Header() {
@@ -52,9 +53,7 @@ export default async function Header() {
           prompt<b>overflow</b>
         </Link>
         <nav className="header-nav">
-          <Link href="/questions">Questions</Link>
-          <Link href="/tags">Tags</Link>
-          <Link href="/users">Users</Link>
+          <NavLinks />
         </nav>
         <div className="header-search">
           <SearchBox />

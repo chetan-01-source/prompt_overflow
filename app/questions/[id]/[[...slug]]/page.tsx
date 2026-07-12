@@ -145,7 +145,7 @@ export default async function QuestionPage({
             )}
             <div className="post-taglist">
               {tags.map((tag) => (
-                <Link key={tag.id} className="post-tag" href={`/tags/${tag.name}`}>
+                <Link key={tag.id} className="post-tag" href={`/questions/tagged/${tag.name}`}>
                   {tag.name}
                 </Link>
               ))}

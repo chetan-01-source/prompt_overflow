@@ -1,0 +1,11 @@
+import { chromium } from "@playwright/test";
+const url = process.argv[2] || "http://127.0.0.1:3000/questions/2";
+const browser = await chromium.launch();
+const page = await browser.newPage();
+const errors = [];
+page.on("pageerror", (e) => errors.push("PAGEERROR: " + e.message.slice(0, 400)));
+page.on("response", (r) => { if (r.status() >= 400) errors.push(`HTTP ${r.status()} ${r.url().slice(0, 160)}`); });
+await page.goto(url, { waitUntil: "networkidle", timeout: 45000 }).catch(()=>{});
+await page.waitForTimeout(1500);
+console.log(errors.join("\n") || "no errors");
+await browser.close();

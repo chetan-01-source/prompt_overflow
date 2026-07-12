@@ -46,9 +46,9 @@ export default function AnswerForm({
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-item">
-        <label htmlFor="answer-body">Body</label>
         <textarea
           id="answer-body"
+          aria-label="Your answer body"
           rows={10}
           value={body}
           onChange={(e) => setBody(e.target.value)}
