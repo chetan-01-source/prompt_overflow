@@ -83,8 +83,8 @@ test.describe.serial("Prompt Overflow core flows", () => {
 
   test("search finds seeded question", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("searchbox").fill("snake game");
-    await page.getByRole("searchbox").press("Enter");
+    await page.getByPlaceholder("search").fill("snake game");
+    await page.getByPlaceholder("search").press("Enter");
     await expect(page).toHaveURL(/search/);
     await expect(page.locator(".question-summary").first()).toContainText(/snake/i, { timeout: 10_000 });
   });
