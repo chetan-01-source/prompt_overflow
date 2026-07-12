@@ -37,6 +37,11 @@ export default async function UserProfilePage({
   if (!profile) notFound();
   const user = profile as Profile;
 
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser();
+  const isOwner = viewer?.id === user.id;
+
   const [questionsRes, answersRes, questionCountRes, answerCountRes] =
     await Promise.all([
       supabase
@@ -82,6 +87,11 @@ export default async function UserProfilePage({
         </div>
         <div>
           <h1>{user.username}</h1>
+          {isOwner && (
+            <Link href="/settings" className="settings-nav">
+              Edit profile
+            </Link>
+          )}
           <div style={{ fontSize: "13px", color: "#666" }}>
             member for {timeAgo(user.created_at).replace(" ago", "")}
           </div>

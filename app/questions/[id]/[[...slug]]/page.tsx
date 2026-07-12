@@ -98,6 +98,18 @@ export default async function QuestionPage({
   const answerComments = (answerCommentsRes.data ?? []) as Comment[];
   const votes = (votesRes.data ?? []) as VoteRow[];
 
+  // Fetch which comments the current user has upvoted
+  const myCommentVotes: number[] = [];
+  if (user) {
+    const { data: cvRows } = await supabase
+      .from("comment_votes")
+      .select("comment_id")
+      .eq("user_id", user.id);
+    if (cvRows) {
+      for (const r of cvRows) myCommentVotes.push(r.comment_id);
+    }
+  }
+
   const myVote = (postType: "question" | "answer", postId: number): -1 | 0 | 1 =>
     votes.find((v) => v.post_type === postType && v.post_id === postId)
       ?.vote_type ?? 0;
@@ -167,6 +179,8 @@ export default async function QuestionPage({
               postId={question.id}
               comments={questionComments}
               isLoggedIn={isLoggedIn}
+              currentUserId={user?.id ?? null}
+              myCommentVotes={myCommentVotes}
             />
           </div>
         </div>
@@ -217,6 +231,8 @@ export default async function QuestionPage({
                   postId={answer.id}
                   comments={commentsFor(answer.id)}
                   isLoggedIn={isLoggedIn}
+                  currentUserId={user?.id ?? null}
+                  myCommentVotes={myCommentVotes}
                 />
               </div>
             </div>

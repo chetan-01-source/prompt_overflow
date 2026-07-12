@@ -52,6 +52,17 @@ export async function postAnswer({
   return {};
 }
 
+/** Parse distinct @username tokens from comment body. */
+function parseMentions(body: string): string[] {
+  const re = /@([a-z0-9-]{3,30})/g;
+  const usernames = new Set<string>();
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(body)) !== null) {
+    usernames.add(match[1]);
+  }
+  return Array.from(usernames);
+}
+
 export async function postComment({
   postType,
   postId,
@@ -72,22 +83,98 @@ export async function postComment({
   if (trimmed.length < 15 || trimmed.length > 600) {
     return { error: "Comments must be between 15 and 600 characters." };
   }
-  const { error } = await supabase.from("comments").insert({
-    post_type: postType,
-    post_id: postId,
-    author_id: user.id,
-    body,
-  });
+  const { data: inserted, error } = await supabase
+    .from("comments")
+    .insert({
+      post_type: postType,
+      post_id: postId,
+      author_id: user.id,
+      body,
+    })
+    .select("id")
+    .single();
   if (error) {
     return { error: friendlyError(error.message, "comment") };
   }
+
+  // Resolve question_id for mention notifications
+  let questionId: number;
   if (postType === "question") {
-    revalidatePath(`/questions/${postId}`);
+    questionId = postId;
   } else {
     const { data: answer } = await supabase
       .from("answers")
       .select("question_id")
       .eq("id", postId)
+      .single();
+    questionId = answer?.question_id ?? 0;
+  }
+
+  // Send @mention notifications (fire and forget, never block the comment)
+  const usernames = parseMentions(body);
+  if (usernames.length > 0 && inserted?.id && questionId > 0) {
+    supabase
+      .rpc("notify_mentions", {
+        p_comment_id: inserted.id,
+        p_question_id: questionId,
+        p_usernames: usernames,
+      })
+      .then(() => {});
+  }
+
+  // Revalidate the question page
+  if (postType === "question") {
+    revalidatePath(`/questions/${postId}`);
+  } else if (questionId > 0) {
+    revalidatePath(`/questions/${questionId}`);
+  }
+  return {};
+}
+
+export async function editComment({
+  commentId,
+  body,
+}: {
+  commentId: number;
+  body: string;
+}): Promise<{ error?: string }> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "You must be logged in to edit a comment." };
+  }
+  const trimmed = body.trim();
+  if (trimmed.length < 15 || trimmed.length > 600) {
+    return { error: "Comments must be between 15 and 600 characters." };
+  }
+  const { data: updated, error } = await supabase
+    .from("comments")
+    .update({
+      body,
+      edited_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", commentId)
+    .eq("author_id", user.id)
+    .select("post_type, post_id")
+    .single();
+  if (error) {
+    return { error: friendlyError(error.message, "comment") };
+  }
+  if (!updated) {
+    return { error: "Comment not found or you are not the author." };
+  }
+
+  // Revalidate the question page
+  if (updated.post_type === "question") {
+    revalidatePath(`/questions/${updated.post_id}`);
+  } else {
+    const { data: answer } = await supabase
+      .from("answers")
+      .select("question_id")
+      .eq("id", updated.post_id)
       .single();
     if (answer) revalidatePath(`/questions/${answer.question_id}`);
   }

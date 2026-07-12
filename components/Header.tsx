@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import SearchBox from "@/components/SearchBox";
 import NavLinks from "@/components/NavLinks";
 import LogoutButton from "@/components/LogoutButton";
+import NotifBell from "@/components/NotifBell";
 
 export default async function Header() {
   const supabase = createClient();
@@ -11,6 +12,7 @@ export default async function Header() {
   } = await supabase.auth.getUser();
 
   let profile: { username: string; reputation: number } | null = null;
+  let unreadCount = 0;
   if (user) {
     const { data } = await supabase
       .from("profiles")
@@ -18,6 +20,12 @@ export default async function Header() {
       .eq("id", user.id)
       .single();
     profile = data;
+
+    const { count } = await supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("is_read", false);
+    unreadCount = count ?? 0;
   }
 
   return (
@@ -33,6 +41,7 @@ export default async function Header() {
                 <span className="rep-score" title="reputation">
                   {profile.reputation}
                 </span>
+                <NotifBell unreadCount={unreadCount} />
                 <LogoutButton />
               </>
             ) : (
