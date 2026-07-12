@@ -128,18 +128,23 @@ async function main() {
     if (body?.error) throw new Error(`RPC error: ${body.error.message}`);
     const tools = body?.result?.tools;
     if (!Array.isArray(tools)) throw new Error("result.tools is not an array");
-    if (tools.length !== 5) {
-      throw new Error(
-        `expected 5 tools, got ${tools.length}: ${tools.map((t) => t.name).join(", ")}`
-      );
-    }
     const expected = [
       "list_prompts",
       "search_prompts",
       "get_question",
       "get_prompts_by_tag",
       "list_tags",
+      "discover_prompts",
+      "get_related_prompts",
+      "compose_prompt",
     ];
+    if (tools.length !== expected.length) {
+      throw new Error(
+        `expected ${expected.length} tools, got ${tools.length}: ${tools
+          .map((t) => t.name)
+          .join(", ")}`
+      );
+    }
     const names = tools.map((t) => t.name);
     for (const e of expected) {
       if (!names.includes(e)) throw new Error(`missing tool: ${e}`);
@@ -149,7 +154,7 @@ async function main() {
         throw new Error(`tool ${t.name} missing valid inputSchema`);
       }
     }
-    pass("tools/list", `5 tools: ${names.join(", ")}`);
+    pass("tools/list", `${expected.length} tools: ${names.join(", ")}`);
   });
 
   // 3. tools/call list_prompts
@@ -217,6 +222,88 @@ async function main() {
       }
     }
     pass("tools/call list_tags", `${tags.length} tags`);
+  });
+
+  // 5b. discover_prompts returns a randomized sample
+  await step("tools/call discover_prompts", async () => {
+    const { status, body } = await rpc("tools/call", {
+      name: "discover_prompts",
+      arguments: { limit: 3 },
+    });
+    if (status !== 200) throw new Error(`HTTP ${status}`);
+    if (body?.result?.isError) {
+      throw new Error(`tool error: ${toolText(body.result)}`);
+    }
+    const items = JSON.parse(toolText(body?.result));
+    if (!Array.isArray(items)) throw new Error("result is not an array");
+    pass("tools/call discover_prompts", `${items.length} sampled`);
+  });
+
+  // 5c. compose_prompt returns ingredients + guidance
+  await step("tools/call compose_prompt", async () => {
+    const { status, body } = await rpc("tools/call", {
+      name: "compose_prompt",
+      arguments: { goal: "build a playable browser game", limit: 3 },
+    });
+    if (status !== 200) throw new Error(`HTTP ${status}`);
+    if (body?.result?.isError) {
+      throw new Error(`tool error: ${toolText(body.result)}`);
+    }
+    const comp = JSON.parse(toolText(body?.result));
+    if (!Array.isArray(comp.ingredients)) {
+      throw new Error("missing ingredients array");
+    }
+    if (typeof comp.guidance !== "string" || comp.guidance.length < 20) {
+      throw new Error("missing guidance");
+    }
+    pass("tools/call compose_prompt", `${comp.ingredients.length} ingredients`);
+  });
+
+  // 5d. get_related_prompts (uses first list_prompts id)
+  await step("tools/call get_related_prompts", async () => {
+    const { body: listBody } = await rpc("tools/call", {
+      name: "list_prompts",
+      arguments: { limit: 1 },
+    });
+    const list = JSON.parse(toolText(listBody?.result));
+    if (!Array.isArray(list) || list.length === 0) {
+      throw new Error("no prompts to relate to");
+    }
+    const { status, body } = await rpc("tools/call", {
+      name: "get_related_prompts",
+      arguments: { id: list[0].id, limit: 3 },
+    });
+    if (status !== 200) throw new Error(`HTTP ${status}`);
+    if (body?.result?.isError) {
+      throw new Error(`tool error: ${toolText(body.result)}`);
+    }
+    const items = JSON.parse(toolText(body?.result));
+    if (!Array.isArray(items)) throw new Error("result is not an array");
+    pass("tools/call get_related_prompts", `${items.length} related to #${list[0].id}`);
+  });
+
+  // 5e. prompts capability: list + get
+  await step("prompts/list", async () => {
+    const { status, body } = await rpc("prompts/list", {});
+    if (status !== 200) throw new Error(`HTTP ${status}`);
+    if (body?.error) throw new Error(`RPC error: ${body.error.message}`);
+    const prompts = body?.result?.prompts;
+    if (!Array.isArray(prompts) || prompts.length === 0) {
+      throw new Error("no prompt templates returned");
+    }
+    if (typeof prompts[0].name !== "string") {
+      throw new Error("prompt template missing name");
+    }
+    // Fetch the first template and validate the messages payload.
+    const { body: getBody } = await rpc("prompts/get", { name: prompts[0].name });
+    const msgs = getBody?.result?.messages;
+    if (!Array.isArray(msgs) || msgs.length === 0) {
+      throw new Error("prompts/get returned no messages");
+    }
+    if (msgs[0]?.content?.type !== "text" || !msgs[0]?.content?.text) {
+      throw new Error("prompts/get message malformed");
+    }
+    pass("prompts/list + get", `${prompts.length} templates, first=${prompts[0].name}`);
   });
 
   // 6. GET should return 405 with a JSON-RPC error

@@ -28,9 +28,10 @@ test.describe("MCP server", () => {
     });
     expect(res.result.serverInfo.name).toContain("prompt");
     expect(res.result.capabilities.tools).toBeDefined();
+    expect(res.result.capabilities.prompts).toBeDefined();
   });
 
-  test("tools/list exposes prompt browsing tools", async ({ request, baseURL }) => {
+  test("tools/list exposes prompt browsing + creativity tools", async ({ request, baseURL }) => {
     const res = await rpc(request, baseURL!, "tools/list");
     const names = res.result.tools.map((t: any) => t.name);
     expect(names).toContain("list_prompts");
@@ -38,6 +39,9 @@ test.describe("MCP server", () => {
     expect(names).toContain("get_question");
     expect(names).toContain("get_prompts_by_tag");
     expect(names).toContain("list_tags");
+    expect(names).toContain("discover_prompts");
+    expect(names).toContain("get_related_prompts");
+    expect(names).toContain("compose_prompt");
   });
 
   test("list_prompts returns seeded prompts", async ({ request, baseURL }) => {
@@ -78,5 +82,36 @@ test.describe("MCP server", () => {
     });
     const text = res.result.content[0].text;
     expect(text).toContain("claude");
+  });
+
+  test("compose_prompt returns ingredients and guidance", async ({ request, baseURL }) => {
+    const res = await rpc(request, baseURL!, "tools/call", {
+      name: "compose_prompt",
+      arguments: { goal: "build a playable browser game", limit: 3 },
+    });
+    const comp = JSON.parse(res.result.content[0].text);
+    expect(Array.isArray(comp.ingredients)).toBe(true);
+    expect(typeof comp.guidance).toBe("string");
+    expect(comp.guidance.length).toBeGreaterThan(20);
+  });
+
+  test("discover_prompts returns a sample", async ({ request, baseURL }) => {
+    const res = await rpc(request, baseURL!, "tools/call", {
+      name: "discover_prompts",
+      arguments: { limit: 3 },
+    });
+    const items = JSON.parse(res.result.content[0].text);
+    expect(Array.isArray(items)).toBe(true);
+  });
+
+  test("prompts capability: list and get", async ({ request, baseURL }) => {
+    const list = await rpc(request, baseURL!, "prompts/list");
+    expect(Array.isArray(list.result.prompts)).toBe(true);
+    expect(list.result.prompts.length).toBeGreaterThan(0);
+    const name = list.result.prompts[0].name;
+    const got = await rpc(request, baseURL!, "prompts/get", { name });
+    expect(Array.isArray(got.result.messages)).toBe(true);
+    expect(got.result.messages[0].content.type).toBe("text");
+    expect(got.result.messages[0].content.text.length).toBeGreaterThan(0);
   });
 });

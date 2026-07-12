@@ -6,6 +6,11 @@ import {
   getQuestion,
   getPromptsByTag,
   listTags,
+  discoverPrompts,
+  getRelatedPrompts,
+  composePrompts,
+  listPromptTemplates,
+  getPromptTemplate,
 } from "@/lib/mcp/data";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +65,22 @@ const listTagsArgs = z.object({
   limit: z.number().int().min(1).max(200).optional(),
 });
 
+const discoverPromptsArgs = z.object({
+  theme: z.string().min(1).optional(),
+  exclude_tags: z.array(z.string()).optional(),
+  limit: z.number().int().min(1).max(25).optional(),
+});
+
+const getRelatedPromptsArgs = z.object({
+  id: z.number().int(),
+  limit: z.number().int().min(1).max(25).optional(),
+});
+
+const composePromptsArgs = z.object({
+  goal: z.string().min(1),
+  limit: z.number().int().min(1).max(10).optional(),
+});
+
 const TOOLS = [
   {
     name: "list_prompts",
@@ -87,7 +108,7 @@ const TOOLS = [
   {
     name: "search_prompts",
     description:
-      "Full-text search questions/prompts on Prompt Overflow by keywords.",
+      "Full-text search across Prompt Overflow question titles, bodies, prompts, AND answer bodies. Each result includes the proven 'technique' excerpt from the accepted or top answer, plus 'matched_in' (prompt|answer|both). Use this to find not just prompts but the community refinements that make them work.",
     inputSchema: {
       type: "object",
       properties: {
@@ -140,6 +161,64 @@ const TOOLS = [
       },
     },
   },
+  {
+    name: "discover_prompts",
+    description:
+      "Get a RANDOMIZED sample of community prompts to spark lateral ideas and creativity. Pure browsing is deterministic; this injects serendipity. Optionally focus on a theme tag and/or exclude tags you have already explored. Each result carries its proven technique.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        theme: {
+          type: "string",
+          description: "Optional tag to focus the sample on (e.g. 'game', 'agents')",
+        },
+        exclude_tags: {
+          type: "array",
+          items: { type: "string" },
+          description: "Tags to exclude so you see fresh territory",
+        },
+        limit: {
+          type: "number",
+          description: "Sample size (1-25, default 5)",
+        },
+      },
+    },
+  },
+  {
+    name: "get_related_prompts",
+    description:
+      "Given a question id, find related prompts that share tags, ranked by tag overlap then score. Use this to explore laterally: one good prompt leads to adjacent proven ones.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "number", description: "Question ID to find neighbors of" },
+        limit: {
+          type: "number",
+          description: "Max results (1-25, default 5)",
+        },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "compose_prompt",
+    description:
+      "Given a goal, return the most relevant proven prompts plus their community techniques as raw ingredients, along with guidance for synthesizing a NEW original prompt for the goal. This turns the corpus into an active creative tool rather than a lookup.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        goal: {
+          type: "string",
+          description: "What you want the new prompt to achieve",
+        },
+        limit: {
+          type: "number",
+          description: "How many ingredient prompts to gather (1-10, default 5)",
+        },
+      },
+      required: ["goal"],
+    },
+  },
 ];
 
 async function dispatchTool(
@@ -168,6 +247,22 @@ async function dispatchTool(
     case "list_tags": {
       const parsed = listTagsArgs.parse(args);
       return listTags(parsed.limit);
+    }
+    case "discover_prompts": {
+      const parsed = discoverPromptsArgs.parse(args);
+      return discoverPrompts({
+        theme: parsed.theme,
+        excludeTags: parsed.exclude_tags,
+        limit: parsed.limit,
+      });
+    }
+    case "get_related_prompts": {
+      const parsed = getRelatedPromptsArgs.parse(args);
+      return getRelatedPrompts(parsed.id, parsed.limit);
+    }
+    case "compose_prompt": {
+      const parsed = composePromptsArgs.parse(args);
+      return composePrompts(parsed.goal, parsed.limit);
     }
     default:
       throw new ToolNotFoundError(name);
@@ -205,7 +300,7 @@ async function handleRpc(rpc: JsonRpcRequest): Promise<unknown | null> {
     case "initialize":
       return rpcResult(id, {
         protocolVersion: PROTOCOL_VERSION,
-        capabilities: { tools: {} },
+        capabilities: { tools: {}, prompts: {} },
         serverInfo: SERVER_INFO,
       });
 
@@ -219,6 +314,35 @@ async function handleRpc(rpc: JsonRpcRequest): Promise<unknown | null> {
 
     case "tools/list":
       return rpcResult(id, { tools: TOOLS });
+
+    case "prompts/list": {
+      // Surface top community prompts as invokable MCP prompt templates.
+      const templates = await listPromptTemplates(25);
+      return rpcResult(id, {
+        prompts: templates.map((t) => ({
+          name: t.name,
+          title: t.title,
+          description: t.description,
+        })),
+      });
+    }
+
+    case "prompts/get": {
+      const params = (rpc.params ?? {}) as { name?: unknown };
+      if (typeof params.name !== "string") {
+        return rpcError(id, INVALID_PARAMS, "Missing prompt name");
+      }
+      try {
+        const tpl = await getPromptTemplate(params.name);
+        if (!tpl) {
+          return rpcError(id, INVALID_PARAMS, `Unknown prompt: ${params.name}`);
+        }
+        return rpcResult(id, tpl);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return rpcError(id, INTERNAL_ERROR, message);
+      }
+    }
 
     case "tools/call": {
       const params = (rpc.params ?? {}) as {
