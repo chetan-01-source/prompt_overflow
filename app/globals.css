@@ -78,7 +78,16 @@ blockquote {
   color: #4a4a4a;
   letter-spacing: -1px;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
+.site-logo-mark {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+}
+.site-logo-mark svg { width: 100%; height: 100%; display: block; }
 .site-logo b { color: #222; }
 .site-logo:hover, .site-logo:visited { color: #4a4a4a; }
 

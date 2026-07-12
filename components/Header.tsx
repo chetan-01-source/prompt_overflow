@@ -50,6 +50,17 @@ export default async function Header() {
       </div>
       <div className="header">
         <Link href="/" className="site-logo">
+          <span className="site-logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+              <rect width="32" height="32" rx="6" fill="#f48024" />
+              <g fill="#ffffff">
+                <rect x="13" y="21.4" width="13" height="2.7" rx="1.35" />
+                <rect x="13.4" y="17.3" width="12.6" height="2.7" rx="1.35" transform="rotate(-5 13.4 17.3)" />
+                <rect x="14.6" y="13.2" width="11.4" height="2.7" rx="1.35" transform="rotate(-10 14.6 13.2)" />
+              </g>
+              <path d="M6.4 11 L11 15.4 L6.4 19.8" stroke="#ffffff" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </svg>
+          </span>
           prompt<b>overflow</b>
         </Link>
         <nav className="header-nav">
