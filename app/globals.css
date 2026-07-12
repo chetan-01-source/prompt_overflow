@@ -872,3 +872,203 @@ blockquote {
     gap: 8px;
   }
 }
+
+/* ============ SOCIAL FEATURES (comments votes, mentions, notifications, settings) ============ */
+
+/* Comment upvote button + edit link (classic SO style) */
+.comment-vote {
+  width: 20px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 11px;
+  cursor: pointer;
+  color: #ccc;
+  line-height: 1.4;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.comment-vote:hover { color: #f48024; }
+.comment-vote.voted { color: #f48024; font-weight: bold; }
+.comment-vote:disabled { cursor: default; }
+.comment-vote:disabled:hover { color: #ccc; }
+.comment-score-num { font-weight: bold; color: #666; }
+
+.comment-actions { display: inline-flex; gap: 6px; margin-left: 4px; }
+.comment-edit-link {
+  color: #999;
+  font-size: 11px;
+  cursor: pointer;
+  visibility: hidden;
+}
+.comment:hover .comment-edit-link { visibility: visible; }
+.comment-edit-link:hover { color: #444; }
+.comment-edited { color: #999; font-style: italic; }
+
+.comment-edit-form { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.comment-edit-form textarea {
+  width: 100%;
+  max-width: 600px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  padding: 5px;
+  border: 1px solid #999;
+}
+.comment-edit-form .edit-buttons { display: flex; gap: 6px; }
+
+/* @mention rendering inside comment body */
+.mention {
+  color: #07c;
+  font-weight: bold;
+  text-decoration: none;
+}
+.mention:hover { text-decoration: underline; }
+
+/* @mention autocomplete dropdown */
+.mention-wrap { position: relative; }
+.mention-menu {
+  position: absolute;
+  z-index: 30;
+  background: #fff;
+  border: 1px solid #bbb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  min-width: 200px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+.mention-menu-item {
+  padding: 5px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mention-menu-item.active,
+.mention-menu-item:hover { background: #f0f8ff; }
+.mention-menu-item .mini-gravatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 2px;
+  color: #fff;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Notifications: topbar bell + inbox */
+.notif-bell {
+  position: relative;
+  color: #07c;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+.notif-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: #f48024;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 4px;
+  min-width: 14px;
+  text-align: center;
+}
+.notif-list { max-width: 760px; }
+.notif-item {
+  display: flex;
+  gap: 10px;
+  padding: 12px 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+.notif-item.unread { background: #fdf7e2; }
+.notif-item .notif-body { flex: 1; }
+.notif-item .notif-snippet { color: #666; font-size: 12px; margin-top: 3px; }
+.notif-item .notif-time { color: #999; font-size: 11px; }
+.notif-empty { color: #999; font-size: 13px; padding: 20px 10px; }
+
+/* Auth: login tabs + magic link */
+.auth-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #e4e6e8;
+}
+.auth-tab {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #6a737c;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+.auth-tab.active { color: #0c0d0e; border-bottom-color: #f48024; font-weight: bold; }
+.auth-hint { font-size: 12px; color: #6a737c; margin-bottom: 12px; }
+.auth-success {
+  background: #ebf4fb;
+  border: 1px solid #a6ceed;
+  color: #0c5aa6;
+  padding: 10px;
+  border-radius: 3px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+/* Settings page */
+.settings-nav { font-size: 13px; margin-bottom: 16px; }
+.settings-note { font-size: 12px; color: #6a737c; margin-top: 4px; }
+.settings-success {
+  background: #e6f9ed;
+  border: 1px solid #b3e6c7;
+  color: #1c7a43;
+  padding: 10px;
+  border-radius: 3px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+/* MCP connect prompt box */
+.mcp-prompt-box {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f6f6f6;
+  margin-bottom: 16px;
+}
+.mcp-prompt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: #eaeaea;
+  border-bottom: 1px solid #ddd;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: #555;
+}
+.mcp-prompt-box pre {
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  margin: 0;
+}
+.mcp-copy-btn {
+  background: #e1ecf4;
+  border: 1px solid #7aa7c7;
+  color: #39739d;
+  border-radius: 3px;
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+.mcp-copy-btn:hover { background: #b3d3ea; }

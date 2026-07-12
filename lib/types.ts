@@ -57,5 +57,23 @@ export type Comment = {
   body: string;
   score: number;
   created_at: string;
+  updated_at?: string;
+  edited_at?: string | null;
   profiles?: Profile;
+};
+
+export type NotificationRow = {
+  id: number;
+  user_id: string;
+  actor_id: string | null;
+  type: "mention" | "comment";
+  comment_id: number | null;
+  question_id: number | null;
+  post_type: "question" | "answer" | null;
+  post_id: number | null;
+  snippet: string;
+  is_read: boolean;
+  created_at: string;
+  actor?: Pick<Profile, "id" | "username"> | null;
+  questions?: { id: number; title: string } | null;
 };
