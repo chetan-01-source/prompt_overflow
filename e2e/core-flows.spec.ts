@@ -51,8 +51,8 @@ test.describe.serial("Prompt Overflow core flows", () => {
 
   test("questions list with tabs and counts", async ({ page }) => {
     await page.goto("/questions");
-    await expect(page.locator("h1")).toContainText(/all questions/i);
-    await expect(page.locator(".question-count")).toContainText(/questions/);
+    await expect(page.locator("h1")).toContainText(/all prompts/i);
+    await expect(page.locator(".question-count")).toContainText(/prompts/);
     await expect(page.locator(".question-summary").first()).toBeVisible();
     // Sort tabs work
     await page.locator(".sort-tabs a", { hasText: /votes/i }).click();
@@ -109,15 +109,15 @@ test.describe.serial("Prompt Overflow core flows", () => {
     await expect(page.locator(".post-signature").first()).toBeVisible();
   });
 
-  test("signup, ask a question with prompt and tags", async ({ page }) => {
+  test("signup, post a prompt with tags", async ({ page }) => {
     await signup(page, USER_A);
     await page.goto("/ask");
-    await expect(page.locator("h1")).toContainText(/ask/i);
+    await expect(page.locator("h1")).toContainText(/post a prompt/i);
     await page.getByLabel(/title/i).fill(QUESTION_TITLE);
     await page.getByLabel(/body/i).fill(QUESTION_BODY);
     await page.getByLabel(/the prompt/i).fill(QUESTION_PROMPT);
     await page.getByLabel(/tags/i).fill("e2e-testing one-shot");
-    await page.getByRole("button", { name: /post your question/i }).click();
+    await page.getByRole("button", { name: /post your prompt/i }).click();
     await expect(page.locator(".question-header h1")).toContainText(QUESTION_TITLE, { timeout: 20_000 });
     await expect(page.locator(".prompt-box").first()).toBeVisible();
     await expect(page.locator(".post-tag", { hasText: "e2e-testing" }).first()).toBeVisible();
