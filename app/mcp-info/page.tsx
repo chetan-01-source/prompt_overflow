@@ -21,10 +21,19 @@ const LOCAL_CONFIG = `{
 }`;
 
 const TOOLS = `list_prompts          List recent questions that include a prompt, newest first.
-search_prompts        Full-text search across question titles, bodies, and prompts.
+search_prompts        Full-text search across titles, bodies, prompts, AND answers.
+                      Each hit carries the proven technique from the top answer.
 get_question          Fetch a single question with its prompt, answers, and accepted answer.
 get_prompts_by_tag    List prompts for questions filed under a given tag.
-list_tags             List all tags with descriptions and question counts.`;
+list_tags             List all tags with descriptions and question counts.
+discover_prompts      Randomized sample of prompts to spark lateral ideas (serendipity).
+get_related_prompts   Given a question id, find prompts that share tags.
+compose_prompt        Given a goal, gather proven prompts + techniques + guidance
+                      for synthesizing a brand-new prompt.
+
+Prompts capability: the top community prompts are also exposed as invokable
+MCP prompt templates (po_<id>_<slug>). In Claude Code they appear as slash
+commands and inject the raw prompt plus the accepted answer's refinement.`;
 
 export default function McpInfoPage() {
   return (
