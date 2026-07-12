@@ -70,14 +70,14 @@ export default async function QuestionsPage({
     <>
       <div className="main-content">
         <div className="page-header">
-          <h1>All Questions</h1>
+          <h1>All Prompts</h1>
           <Link href="/ask" className="btn-primary">
-            Ask Question
+            Post a Prompt
           </Link>
         </div>
         <div className="subheader-row">
           <div className="question-count">
-            {total.toLocaleString()} questions
+            {total.toLocaleString()} prompts
           </div>
           <div className="sort-tabs">
             {TABS.map((t) => (
@@ -93,7 +93,7 @@ export default async function QuestionsPage({
         </div>
         {list.length === 0 ? (
           <div className="notice-empty">
-            No questions found. <a href="/ask">Ask the first one!</a>
+            No prompts found. <a href="/ask">Post the first one!</a>
           </div>
         ) : (
           list.map((q) => <QuestionSummary key={q.id} question={q} />)

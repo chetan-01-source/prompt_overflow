@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AskForm from "@/components/AskForm";
 
 export const metadata = {
-  title: "Ask a Question - Prompt Overflow",
+  title: "Post a Prompt - Prompt Overflow",
 };
 
 export default async function AskPage() {
@@ -20,17 +20,16 @@ export default async function AskPage() {
     <>
       <div className="main-content">
         <div className="page-header">
-          <h1>Ask a Question</h1>
+          <h1>Post a Prompt</h1>
         </div>
         <AskForm />
       </div>
       <div className="sidebar">
         <div className="yellow-box ask-hint-box">
-          <h4>How to ask</h4>
+          <h4>How to post</h4>
           <ul>
-            <li>Is your question about sharing a prompt?</li>
-            <li>Include the exact prompt you used</li>
-            <li>Add the link to what it built</li>
+            <li>Share the exact prompt you used</li>
+            <li>Include the link to what it built</li>
             <li>Describe what you expected and what you got</li>
             <li>Add tags so others can find it</li>
           </ul>

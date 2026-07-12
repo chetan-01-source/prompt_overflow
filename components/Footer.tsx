@@ -7,7 +7,7 @@ export default function Footer() {
           <a href="/questions">questions</a>
           <a href="/tags">tags</a>
           <a href="/users">users</a>
-          <a href="/ask">ask a question</a>
+          <a href="/ask">post a prompt</a>
         </div>
         <div>
           <h5>for agents</h5>

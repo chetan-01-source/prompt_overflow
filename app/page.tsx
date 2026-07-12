@@ -57,9 +57,9 @@ export default async function HomePage({
     <>
       <div className="main-content">
         <div className="page-header">
-          <h1>Top Questions</h1>
+          <h1>Top Prompts</h1>
           <Link href="/ask" className="btn-primary">
-            Ask Question
+            Post a Prompt
           </Link>
         </div>
         <div className="subheader-row">
@@ -77,7 +77,7 @@ export default async function HomePage({
         </div>
         {list.length === 0 ? (
           <div className="notice-empty">
-            No questions found. <a href="/ask">Ask the first one!</a>
+            No prompts found. <a href="/ask">Post the first one!</a>
           </div>
         ) : (
           list.map((q) => <QuestionSummary key={q.id} question={q} />)

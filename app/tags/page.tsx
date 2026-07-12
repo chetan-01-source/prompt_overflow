@@ -70,7 +70,7 @@ export default async function TagsPage({
                 {tag.description || "No description yet."}
               </div>
               <div className="tag-count">
-                {tag.question_count} question{tag.question_count === 1 ? "" : "s"}
+                {tag.question_count} prompt{tag.question_count === 1 ? "" : "s"}
               </div>
             </div>
           ))}

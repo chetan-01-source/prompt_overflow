@@ -64,7 +64,7 @@ export default async function SearchPage({
         <div className="page-header">
           <h1>Search Results</h1>
           <Link href="/ask" className="btn-primary">
-            Ask Question
+            Post a Prompt
           </Link>
         </div>
         <div className="subheader-row">

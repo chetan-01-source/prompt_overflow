@@ -101,7 +101,7 @@ export default async function UserProfilePage({
           <strong>{user.reputation}</strong> reputation
         </div>
         <div className="stat">
-          <strong>{questionCount}</strong> questions
+          <strong>{questionCount}</strong> prompts
         </div>
         <div className="stat">
           <strong>{answerCount}</strong> answers
@@ -113,10 +113,10 @@ export default async function UserProfilePage({
       )}
 
       <div className="profile-section">
-        <h2>Questions ({questionCount})</h2>
+        <h2>Prompts ({questionCount})</h2>
         {questions.length === 0 ? (
           <div style={{ fontSize: "12px", color: "#999" }}>
-            No questions asked yet.
+            No prompts posted yet.
           </div>
         ) : (
           questions.map((q) => (

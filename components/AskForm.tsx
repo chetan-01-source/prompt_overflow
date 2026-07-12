@@ -66,7 +66,7 @@ export default function AskForm() {
       <div className="form-item">
         <label htmlFor="body">Body</label>
         <div className="form-hint">
-          describe your question in detail. markdown is supported.
+          describe what you built and how the prompt got you there. markdown is supported.
         </div>
         <textarea
           id="body"
@@ -114,7 +114,7 @@ export default function AskForm() {
       {error && <div className="form-error">{error}</div>}
       <div className="form-item">
         <button type="submit" className="btn-primary" disabled={submitting}>
-          {submitting ? "posting..." : "Post Your Question"}
+          {submitting ? "posting..." : "Post Your Prompt"}
         </button>
       </div>
     </form>

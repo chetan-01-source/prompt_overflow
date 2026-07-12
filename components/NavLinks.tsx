@@ -14,7 +14,7 @@ export default function NavLinks() {
   return (
     <>
       <Link href="/questions" className={questionsCurrent ? "current" : undefined}>
-        Questions
+        Prompts
       </Link>
       <Link href="/tags" className={tagsCurrent ? "current" : undefined}>
         Tags

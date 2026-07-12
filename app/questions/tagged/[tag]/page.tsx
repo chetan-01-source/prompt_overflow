@@ -47,7 +47,7 @@ export default async function TaggedQuestionsPage({
           <div className="page-header">
             <h1>Questions tagged [{tagName}]</h1>
             <Link href="/ask" className="btn-primary">
-              Ask Question
+              Post a Prompt
             </Link>
           </div>
           <div className="notice-empty">Tag not found</div>
@@ -126,7 +126,7 @@ export default async function TaggedQuestionsPage({
         <div className="page-header">
           <h1>Questions tagged [{typedTag.name}]</h1>
           <Link href="/ask" className="btn-primary">
-            Ask Question
+            Post a Prompt
           </Link>
         </div>
         {typedTag.description && (
@@ -134,7 +134,7 @@ export default async function TaggedQuestionsPage({
         )}
         <div className="subheader-row">
           <div className="question-count">
-            {total.toLocaleString()} questions
+            {total.toLocaleString()} prompts
           </div>
           <div className="sort-tabs">
             {TABS.map((t) => (
@@ -150,7 +150,7 @@ export default async function TaggedQuestionsPage({
         </div>
         {list.length === 0 ? (
           <div className="notice-empty">
-            No questions found. <a href="/ask">Ask the first one!</a>
+            No prompts found. <a href="/ask">Post the first one!</a>
           </div>
         ) : (
           list.map((q) => <QuestionSummary key={q.id} question={q} />)
