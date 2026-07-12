@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.env.local
+.env*.local
+.supabase-db-password.txt
+.supabase-token
+test-results/
+playwright-report/
+.DS_Store
+*.tsbuildinfo
