@@ -37,6 +37,18 @@ test.describe.serial("Prompt Overflow social features", () => {
     await expect(page.getByRole("button", { name: /send magic link/i })).toBeVisible();
   });
 
+  test("signup page has password + magic-link tabs; magic mode asks for username + email", async ({ page }) => {
+    await page.goto("/signup");
+    await expect(page.locator(".auth-tab", { hasText: /password/i })).toBeVisible();
+    await expect(page.locator(".auth-tab", { hasText: /magic link/i })).toBeVisible();
+    // Switch to magic link mode: username + email, no password field
+    await page.locator(".auth-tab", { hasText: /magic link/i }).click();
+    await expect(page.getByLabel(/username/i)).toBeVisible();
+    await expect(page.getByLabel(/email/i)).toBeVisible();
+    await expect(page.getByLabel(/^password$/i)).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /send magic link/i })).toBeVisible();
+  });
+
   test("setup: two users and a question", async ({ page }) => {
     await signup(page, OWNER);
     await page.goto("/ask");
