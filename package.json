@@ -2,6 +2,7 @@
   "name": "prompt-overflow",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,14 +11,14 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
+    "marked": "^15.0.4",
     "next": "14.2.21",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "marked": "^15.0.4",
     "sanitize-html": "^2.14.0",
-    "@modelcontextprotocol/sdk": "^1.0.4",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -26,6 +27,8 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/sanitize-html": "^2.13.0",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.21",
     "typescript": "^5"
   }
 }
