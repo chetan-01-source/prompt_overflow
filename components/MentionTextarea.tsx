@@ -46,20 +46,29 @@ export default function MentionTextarea({
       return;
     }
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    const controller = new AbortController();
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/mentions?q=${encodeURIComponent(mentionToken)}`);
+        const res = await fetch(`/api/mentions?q=${encodeURIComponent(mentionToken)}`, {
+          signal: controller.signal,
+        });
         if (res.ok) {
           const data: Suggestion[] = await res.json();
           setSuggestions(data);
           setActiveIdx(0);
         }
-      } catch {
+      } catch (err) {
+        // An aborted request means a newer token superseded this one; leave the
+        // suggestions alone so the in-flight lookup for that token can fill them.
+        if ((err as Error)?.name === "AbortError") return;
         setSuggestions([]);
       }
-    }, 150);
+    }, 300);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      // Cancels the request too, not just the pending timer, so a slow response
+      // for an older token can never overwrite a newer one.
+      controller.abort();
     };
   }, [mentionToken]);
 

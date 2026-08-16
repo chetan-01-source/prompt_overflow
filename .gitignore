@@ -10,3 +10,4 @@ playwright-report/
 *.tsbuildinfo
 .vercel
 .env*
+!.env.example
